@@ -6,12 +6,19 @@ from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtNetwork import *
 
+import File
 
 
 class MainWindow(QMainWindow):
 	def __init__(self):
 		super().__init__()
 		self.setMinimumSize(600,500)
+
+		# File list
+		self.fileList = []
+
+		# Tabs list
+		self.tabList = []
 
 		# central widget
 		central_widget = QWidget(self)
@@ -36,8 +43,10 @@ class MainWindow(QMainWindow):
 		self.openFileButton = QPushButton("Open file")
 		self.networkFileCheckBox = QCheckBox("Network file")
 
-		self.textEditorTextEdit = QTextEdit()
+		
+
 		self.hexEditorTextEdit = QTextEdit()
+		self.textEditorTextEdit = QTextEdit()
 
 		# Add widgets to layout
 
@@ -52,9 +61,13 @@ class MainWindow(QMainWindow):
 		firstRowLayout.addWidget(self.openFileButton)
 		firstRowLayout.addWidget(self.networkFileCheckBox)
 
-	
-		secondRowLayout.addWidget(self.textEditorTextEdit)
-		secondRowLayout.addWidget(self.hexEditorTextEdit)
+		self.tab = QTabWidget(self) # tab widget
+		self.tab.setMovable(True)
+		self.tab.setTabsClosable(True)
+		layout.addWidget(self.tab)
+		self.newTab("blank")	
+		#secondRowLayout.addWidget(self.hexEditorTextEdit)
+		#secondRowLayout.addWidget(self.textEditorTextEdit)
 
 
 
@@ -62,12 +75,30 @@ class MainWindow(QMainWindow):
 
 		self.openFileButton.clicked.connect(self.openFile)
 
-	
+
+
+
+
+	def newTab(self, title):
+		page = QWidget(self)
+		layout = QHBoxLayout()
+		page.setLayout(layout)
+		layout.addWidget(QTextEdit())
+		layout.addWidget(QTextEdit())
+		self.tabList.append(page)
+		self.tab.addTab(page, title)
+
+		return page
+
+
 
 	def openFile(self):
 		filename = self.filePathLineEdit.text()
 		if (os.path.isfile(filename)):
-			print(os.path.getsize(filename), os.path.getmtime(filename), os.path.getctime(filename))
+			size = self.hexEditorTextEdit.document().size()
+			self.fileList.append(File.File(filename, size.height(), size.width()))
+			page = self.newTab(filename)
+			#page.layout().takeAt(0).widget().setText("HEUUUUU"+filename)
 		print("Opening file!")
 
 
@@ -98,13 +129,8 @@ class MainWindow(QMainWindow):
 		"""
 
 
-app = QApplication(sys.argv)
 
-window = MainWindow()
-window.setWindowTitle("Hedytor")
-window.show()
 
-app.exec()
 
 
 
