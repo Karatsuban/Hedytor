@@ -12,7 +12,7 @@ import File
 class MainWindow(QMainWindow):
 	def __init__(self):
 		super().__init__()
-		self.setMinimumSize(600,500)
+		#self.setMinimumSize(600,500)
 
 		self.font = QFont("Monospace")
 
@@ -86,16 +86,26 @@ class MainWindow(QMainWindow):
 		page = QWidget(self)
 		layout = QHBoxLayout()
 		page.setLayout(layout)
+		
 		edit1 = QTextEdit()
 		edit1.setFont(self.font)
+		layout.addWidget(edit1)
+		
 		edit2 = QTextEdit()
 		edit2.setFont(self.font)
-		layout.addWidget(edit1)
+		edit2.setWordWrapMode(QTextOption.WrapAnywhere) # never wrap
+		size = edit1.size()
+		print(edit1.size())
+		print("before ", edit2.size())
+		edit2.resize(10,100) #size.width()/3, size.height())
+		print("after ", edit2.size())
 		layout.addWidget(edit2)
+		
 		self.tabList.append(page)
 		self.tab.addTab(page, title)
 		self.switchToTab(len(self.tabList)-1)
 
+		self.show()
 		return page
 
 
@@ -110,7 +120,6 @@ class MainWindow(QMainWindow):
 			buffers = file.getBuffers()
 			page.layout().itemAt(0).widget().setText(buffers[0])
 			page.layout().itemAt(1).widget().setText(buffers[1])
-		print("Opening file!")
 
 
 	def handle_response(self, reply):
