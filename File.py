@@ -7,7 +7,6 @@ class File:
 		self.file = None
 		self.lines = int(lines)
 		self.columns = int(columns)
-		print("HERE", lines, columns)
 		self.bufferSize = self.lines*self.columns # number of character displayed
 		self.bufferedContent = None # buffered file content
 		self.bufferedHex = None # hexadecimal content
@@ -26,20 +25,19 @@ class File:
 
 	def setBuffs(self):
 		temp = [self.bufferedContent[k:k+2] for k in range(0, len(self.bufferedContent), 2)]
-		print("temp = ", temp)
 		self.bufferedHex = " ".join(temp)
 		self.bufferedAN = ""
 		for k in temp:
-			try:
-				char = bytes.fromhex(k).decode()
-			except UnicodeDecodeError:
+			if (int(k, 16) <= 31):
 				char = "."
-			except ValueError:
-				print("Cant decode "+k)
-			print(k, end=" ")
+			else:
+				try:
+					char = bytes.fromhex(k).decode()
+				except UnicodeDecodeError:
+					char = "."
+				except ValueError:
+					print("Cant decode "+k)
 			self.bufferedAN += char
-		print()
-		#self.bufferedANContent = "".join([bytes.fromhex(k) for k in self.bufferedHexContent])
 
 	def close(self):
 		# close the file after use
