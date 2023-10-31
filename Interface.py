@@ -14,6 +14,8 @@ class MainWindow(QMainWindow):
 		super().__init__()
 		self.setMinimumSize(600,500)
 
+		self.font = QFont("Monospace")
+
 		# File list
 		self.fileList = []
 
@@ -76,17 +78,23 @@ class MainWindow(QMainWindow):
 		self.openFileButton.clicked.connect(self.openFile)
 
 
-
+	def switchToTab(self, index):
+		self.tab.setCurrentIndex(index)
 
 
 	def newTab(self, title):
 		page = QWidget(self)
 		layout = QHBoxLayout()
 		page.setLayout(layout)
-		layout.addWidget(QTextEdit())
-		layout.addWidget(QTextEdit())
+		edit1 = QTextEdit()
+		edit1.setFont(self.font)
+		edit2 = QTextEdit()
+		edit2.setFont(self.font)
+		layout.addWidget(edit1)
+		layout.addWidget(edit2)
 		self.tabList.append(page)
 		self.tab.addTab(page, title)
+		self.switchToTab(len(self.tabList)-1)
 
 		return page
 
@@ -96,9 +104,12 @@ class MainWindow(QMainWindow):
 		filename = self.filePathLineEdit.text()
 		if (os.path.isfile(filename)):
 			size = self.hexEditorTextEdit.document().size()
-			self.fileList.append(File.File(filename, size.height(), size.width()))
+			file = File.File(filename, size.height(), size.width())
+			self.fileList.append(file)
 			page = self.newTab(filename)
-			#page.layout().takeAt(0).widget().setText("HEUUUUU"+filename)
+			buffers = file.getBuffers()
+			page.layout().itemAt(0).widget().setText(buffers[0])
+			page.layout().itemAt(1).widget().setText(buffers[1])
 		print("Opening file!")
 
 
