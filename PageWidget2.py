@@ -5,6 +5,7 @@ from PySide6.QtGui import *
 import EditorLayout
 import StringModel
 import File
+import DisplayDelegate
 
 class PageWidget2(QWidget):
 
@@ -14,8 +15,9 @@ class PageWidget2(QWidget):
 		self.file = File.File(self.filename)
 		self.file.open() # read the file content
 
-		self.modelHex = StringModel.StringModel(self.file.getContent())
-		self.modelPlain = StringModel.StringModel(self.file.getContent(), False)
+		self.model = StringModel.StringModel(self.file.getContent())
+		#self.modelHex = StringModel.StringModel(self.file.getContent())
+		#self.modelPlain = StringModel.StringModel(self.file.getContent(), False)
 
 		self.font = QFont("Monospace")
 		self.layout = QHBoxLayout()#working
@@ -25,16 +27,19 @@ class PageWidget2(QWidget):
 		
 		self.hexEditor.setFont(self.font)
 		self.hexEditor.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
-		self.hexEditor.setModel(self.modelHex)
+		self.hexEditor.setModel(self.model)
 		self.hexEditor.show()
 		self.hexEditor.setGridStyle(Qt.NoPen)
 		self.hexEditor.resizeColumnsToContents()
 		self.hexEditor.resizeRowsToContents()
 
 		#self.plainEditor.setWordWrapMode(QTextOption.WrapAnywhere) # don't cut any word
+
+		self.delegate = DisplayDelegate.DisplayDelegate(self.plainEditor)
+		self.plainEditor.setItemDelegate(self.delegate)
 		self.plainEditor.setFont(self.font)
 		self.plainEditor.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
-		self.plainEditor.setModel(self.modelPlain)
+		self.plainEditor.setModel(self.model)
 		self.plainEditor.show()
 		self.plainEditor.setGridStyle(Qt.NoPen)
 		self.plainEditor.resizeColumnsToContents()
