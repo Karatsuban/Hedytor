@@ -1,0 +1,10 @@
+TODO
+- add a way to adjust the column number (and effectively resize the model/views)
+- implement logic when opening a remote file
+- implement logic when opening a picture file + export in json its properties
+- implement save logic
+
+
+DONE
+
+- implemented two views with different display, connected to the same model
