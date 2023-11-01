@@ -6,12 +6,11 @@ class StringModel(QAbstractTableModel):
 	def __init__(self, data, hexType = True, parent = None):
 		super().__init__(parent)
 		self.characters = data
-		print("len = ", len(self.characters))
 
 
+	# reimplementations
 
 	def columnCount(self, parent = None):
-		#print("My size is : "+self.size())
 		return 16
 	
 
@@ -21,9 +20,7 @@ class StringModel(QAbstractTableModel):
 	
 	def data(self, index, role = Qt.DisplayRole):
 		if role == Qt.DisplayRole:
-			row = index.row()
-			column = index.column()
-			offset = self.columnCount()*row+column
+			offset = self.indexToOffset(index)
 			if offset > len(self.characters)-1:
 				return None
 			else:
@@ -37,6 +34,32 @@ class StringModel(QAbstractTableModel):
 				return self.toHexRepr(section, 2)
 			elif orientation == Qt.Vertical:
 				return self.toHexRepr(section, 5)
+
 	
+	def setData(self, index, value, role = Qt.EditRole):
+		# returns True if successful operation
+		offset = self.indexToOffset(index)
+		self.characters[offset] = value
+		return True
+	
+
+	def flags(self, index):
+		if self.indexToOffset(index) >= len(self.characters):
+			return Qt.NoItemFlags
+		return Qt.ItemIsSelectable|Qt.ItemIsEditable|Qt.ItemIsEnabled|Qt.ItemNeverHasChildren;
+
+
+	# signals
+
+	def dataChanged(self, topLeft, bottomRight):
+		pass
+		
+
+
+	# helper function
+
+	def indexToOffset(self, index):
+		return self.columnCount()*index.row()+index.column()
+
 	def toHexRepr(self, val, nb_zeroes):
-		return format(val, "0"+str(nb_zeroes)+"x")
+		return format(val, "0"+str(nb_zeroes)+"X")
