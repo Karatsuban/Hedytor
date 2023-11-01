@@ -7,8 +7,7 @@ from PySide6.QtGui import *
 from PySide6.QtNetwork import *
 
 import File
-#import PageWidget
-import PageWidget2
+import PageWidget
 
 class MainWindow(QMainWindow):
 	def __init__(self):
@@ -85,7 +84,7 @@ class MainWindow(QMainWindow):
 		# open a file it it exists
 		filename = self.filePathLineEdit.text()
 		if (os.path.isfile(filename)):
-			page = PageWidget2.PageWidget2(filename)
+			page = PageWidget.PageWidget(filename)
 			self.addTab(page, filename)
 			self.filePathLineEdit.clear()
 
