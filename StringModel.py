@@ -6,7 +6,6 @@ class StringModel(QAbstractTableModel):
 	def __init__(self, data, hexType = True, parent = None):
 		super().__init__(parent)
 		self.characters = data
-		self.hexType = hexType
 		print("len = ", len(self.characters))
 
 
@@ -28,25 +27,14 @@ class StringModel(QAbstractTableModel):
 			if offset > len(self.characters)-1:
 				return None
 			else:
-				retChar = self.characters[offset]
-				if self.hexType:
-					return retChar
-				else:
-					if int(retChar, 16) <= 31:
-						retChar = "."
-					else:
-						retChar = bytes.fromhex(retChar).decode()
-					return retChar
+				return self.characters[offset]
 		return None
 
 
 	def headerData(self, section, orientation, role):
 		if role == Qt.DisplayRole:
 			if orientation == Qt.Horizontal:
-				if self.hexType:
-					return self.toHexRepr(section, 2)
-				else:
-					return
+				return self.toHexRepr(section, 2)
 			elif orientation == Qt.Vertical:
 				return self.toHexRepr(section, 5)
 	
