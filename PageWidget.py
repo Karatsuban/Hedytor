@@ -5,7 +5,7 @@ from PySide6.QtGui import *
 import EditorLayout
 import StringModel
 import File
-import DisplayDelegate
+from PlainDelegate import *
 
 class PageWidget2(QWidget):
 
@@ -15,35 +15,38 @@ class PageWidget2(QWidget):
 		self.file = File.File(self.filename)
 		self.file.open() # read the file content
 
+		# initiate only one model
 		self.model = StringModel.StringModel(self.file.getContent())
-		#self.modelHex = StringModel.StringModel(self.file.getContent())
-		#self.modelPlain = StringModel.StringModel(self.file.getContent(), False)
 
 		self.font = QFont("Monospace")
-		self.layout = QHBoxLayout()#working
+		self.layout = QHBoxLayout()
 		self.setLayout(self.layout)
+
+		# create two different views
 		self.hexEditor = QTableView()
 		self.plainEditor = QTableView()
-		
+
+
+		# set the hex editor's values
 		self.hexEditor.setFont(self.font)
 		self.hexEditor.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
 		self.hexEditor.setModel(self.model)
-		self.hexEditor.show()
 		self.hexEditor.setGridStyle(Qt.NoPen)
 		self.hexEditor.resizeColumnsToContents()
 		self.hexEditor.resizeRowsToContents()
 
-		#self.plainEditor.setWordWrapMode(QTextOption.WrapAnywhere) # don't cut any word
 
-		self.delegate = DisplayDelegate.DisplayDelegate(self.plainEditor)
+		# set the plain editor's values
+		self.delegate = PlainDelegate(self.plainEditor)
 		self.plainEditor.setItemDelegate(self.delegate)
 		self.plainEditor.setFont(self.font)
 		self.plainEditor.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
 		self.plainEditor.setModel(self.model)
-		self.plainEditor.show()
 		self.plainEditor.setGridStyle(Qt.NoPen)
 		self.plainEditor.resizeColumnsToContents()
 		self.plainEditor.resizeRowsToContents()
+		self.plainEditor.setShowGrid(False) # hide the grid
+		#self.plainEditor.horizontalHeader().hide() # hide the horizontal header
 
 		self.plainEditor.setSelectionModel(self.hexEditor.selectionModel())
 
