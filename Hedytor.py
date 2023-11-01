@@ -3,7 +3,6 @@ import Interface
 import sys
 
 def main():
-	print("Working")
 	app = QApplication(sys.argv)
 	window = Interface.MainWindow()
 	window.setWindowTitle("Hedytor")
