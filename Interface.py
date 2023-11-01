@@ -7,7 +7,8 @@ from PySide6.QtGui import *
 from PySide6.QtNetwork import *
 
 import File
-
+#import PageWidget
+import PageWidget2
 
 class MainWindow(QMainWindow):
 	def __init__(self):
@@ -19,8 +20,6 @@ class MainWindow(QMainWindow):
 		# File list
 		self.fileList = []
 
-		# Tabs list
-		self.tabList = []
 
 		# central widget
 		central_widget = QWidget(self)
@@ -66,15 +65,15 @@ class MainWindow(QMainWindow):
 		self.tab = QTabWidget(self) # tab widget
 		self.tab.setMovable(True)
 		self.tab.setTabsClosable(True)
+
 		layout.addWidget(self.tab)
-		self.newTab("blank")	
-		#secondRowLayout.addWidget(self.hexEditorTextEdit)
-		#secondRowLayout.addWidget(self.textEditorTextEdit)
+		# set action when closing the tab index
+		self.tab.tabCloseRequested.connect(lambda index: self.removeTab(index))
+		
 
-
+		#self.newTab("blank")
 
 		# Attaching action to button
-
 		self.openFileButton.clicked.connect(self.openFile)
 
 
@@ -82,44 +81,26 @@ class MainWindow(QMainWindow):
 		self.tab.setCurrentIndex(index)
 
 
-	def newTab(self, title):
-		page = QWidget(self)
-		layout = QHBoxLayout()
-		page.setLayout(layout)
-		
-		edit1 = QTextEdit()
-		edit1.setFont(self.font)
-		layout.addWidget(edit1)
-		
-		edit2 = QTextEdit()
-		edit2.setFont(self.font)
-		edit2.setWordWrapMode(QTextOption.WrapAnywhere) # never wrap
-		size = edit1.size()
-		print(edit1.size())
-		print("before ", edit2.size())
-		edit2.resize(10,100) #size.width()/3, size.height())
-		print("after ", edit2.size())
-		layout.addWidget(edit2)
-		
-		self.tabList.append(page)
-		self.tab.addTab(page, title)
-		self.switchToTab(len(self.tabList)-1)
-
-		self.show()
-		return page
-
-
-
 	def openFile(self):
+		# open a file it it exists
 		filename = self.filePathLineEdit.text()
 		if (os.path.isfile(filename)):
-			size = self.hexEditorTextEdit.document().size()
-			file = File.File(filename, size.height(), size.width())
-			self.fileList.append(file)
-			page = self.newTab(filename)
-			buffers = file.getBuffers()
-			page.layout().itemAt(0).widget().setText(buffers[0])
-			page.layout().itemAt(1).widget().setText(buffers[1])
+			page = PageWidget2.PageWidget2(filename)
+			self.addTab(page, filename)
+			self.filePathLineEdit.clear()
+
+
+	def addTab(self, page, title):
+		# add page to tab, with title as a title
+		self.tab.addTab(page, title)
+		index = self.tab.count()-1
+		self.switchToTab(index)
+
+
+	def removeTab(self, index):
+		# remove the page at index
+		page = self.tab.widget(index)
+		self.tab.removeTab(index)
 
 
 	def handle_response(self, reply):
