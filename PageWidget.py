@@ -5,6 +5,7 @@ from PySide6.QtGui import *
 import StringModel
 import File
 from PlainDelegate import *
+from ExportWindow import *
 
 class PageWidget(QWidget):
 
@@ -17,9 +18,11 @@ class PageWidget(QWidget):
 		# initiate only one model
 		self.model = StringModel.StringModel(self.file.getContent())
 
+		# define font and layout
 		self.font = QFont("Monospace")
 		self.layout = QHBoxLayout()
 		self.setLayout(self.layout)
+
 
 		# create two different views
 		self.hexEditor = QTableView()
@@ -47,15 +50,28 @@ class PageWidget(QWidget):
 		self.plainEditor.setShowGrid(False) # hide the grid
 		#self.plainEditor.horizontalHeader().hide() # hide the horizontal header
 
+
+		# synchronize the selection across the two views
 		self.plainEditor.setSelectionModel(self.hexEditor.selectionModel())
 
+		print(self.hexEditor.verticalScrollBar())
+		self.plainEditor.setVerticalScrollBar(self.hexEditor.verticalScrollBar())
+		self.scrollBar = self.plainEditor.verticalScrollBar()
+
 		# adding the widgets to the layout
-		self.layout.addWidget(self.hexEditor)#working
-		self.layout.addWidget(self.plainEditor)#working
+		self.layout.addWidget(self.hexEditor)
+		self.layout.addWidget(self.scrollBar)
+		self.layout.addWidget(self.plainEditor)
 
-	
-		#self.resizeEditors()
 
+
+
+		# spawn a new window if the file opened is an image
+		if self.file.isPicture:
+			if self.file.hasExif:
+				self.exportWindow = ExportWindow(self.file.getExifData())
+				self.exportWindow.show()
+		
 	
 
 
