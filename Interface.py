@@ -49,9 +49,12 @@ class MainWindow(QMainWindow):
 		searchButton = QAction("&Search", self)
 		searchButton.triggered.connect(self.searchButton)
 
+		displayButton = QAction("Nb columns", self)
+
 		# add menues
 		self.file_menu = self.menu.addMenu("&File")
 		self.edit_menu = self.menu.addMenu("&Edit")
+		self.disp_menu = self.menu.addMenu("&Display")
 
 		# Add actions to menues
 		self.file_menu.addAction(openButton)
@@ -60,6 +63,7 @@ class MainWindow(QMainWindow):
 
 		self.edit_menu.addAction(searchButton)
 		
+		self.disp_menu.addAction(displayButton)
 
 		# Add widgets
 
