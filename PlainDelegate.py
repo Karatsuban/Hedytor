@@ -1,7 +1,12 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
+import string
 
 class PlainDelegate(QStyledItemDelegate):
+
+	# all the printable chars, text and indices
+	printable_chars = string.ascii_letters + string.digits + string.punctuation + ' '
+	pr_id = [ord(k) for k in printable_chars]
 
 	def __init__(self, model, parent = None):
 		super().__init__(parent)
@@ -9,7 +14,7 @@ class PlainDelegate(QStyledItemDelegate):
 		self.parent = parent
 	
 	def displayText(self, value, locale):
-		if int(value, 16) <= 31:
+		if int(value, 16) not in self.pr_id:
 			return "."
 		return bytes.fromhex(value).decode()
 
