@@ -12,7 +12,7 @@ import PageWidget
 class MainWindow(QMainWindow):
 	def __init__(self):
 		super().__init__()
-		#self.setMinimumSize(600,500)
+		self.setMinimumSize(600,500)
 
 		self.font = QFont("Monospace")
 
@@ -34,8 +34,36 @@ class MainWindow(QMainWindow):
 		#self.network_manager = QNetworkAccessManager()
 		#self.network_manager.finished.connect(self.handle_response)
 
+		# Add a menubar
+		self.menu = self.menuBar()
+
+		# Action buttons
+	
+		openButton = QAction("&Open file", self)
+		openButton.triggered.connect(self.openFrom)
+		saveButton = QAction("&Save file", self)
+		saveButton.triggered.connect(self.saveTo)
+		exportJSONButton = QAction("&Export to JSON", self)
+		exportJSONButton.triggered.connect(self.exportToJSON)
+
+		searchButton = QAction("&Search", self)
+		searchButton.triggered.connect(self.searchButton)
+
+		# add menues
+		self.file_menu = self.menu.addMenu("&File")
+		self.edit_menu = self.menu.addMenu("&Edit")
+
+		# Add actions to menues
+		self.file_menu.addAction(openButton)
+		self.file_menu.addAction(saveButton)
+		self.file_menu.addAction(exportJSONButton)
+
+		self.edit_menu.addAction(searchButton)
+		
 
 		# Add widgets
+
+
 
 
 		self.filePathLineEdit = QLineEdit()
@@ -80,11 +108,11 @@ class MainWindow(QMainWindow):
 		self.tab.setCurrentIndex(index)
 
 
-	def openFile(self):
+	def openFile(self, filepath):
 		# open a file it it exists
-		filename = self.filePathLineEdit.text()
-		if (os.path.isfile(filename)):
-			page = PageWidget.PageWidget(filename)
+		if (os.path.isfile(filepath)):
+			page = PageWidget.PageWidget(filepath)
+			filename = os.path.split(filepath)[-1]
 			self.addTab(page, filename)
 			self.filePathLineEdit.clear()
 
@@ -101,6 +129,27 @@ class MainWindow(QMainWindow):
 		page = self.tab.widget(index)
 		self.tab.removeTab(index)
 
+
+	def	openFrom(self):
+			dialog = QFileDialog(self)
+			dialog.setFileMode(QFileDialog.AnyFile)
+			dialog.setViewMode(QFileDialog.Detail)
+			if dialog.exec():
+				filenames = dialog.selectedFiles()
+			else:
+				filenames = []
+			print("open from: "+", ".join(filenames))
+			for filename in filenames:
+				self.openFile(filename)
+
+	def saveTo(self):
+			print("save to")
+
+	def exportToJSON(self):
+			print("export to JSON")
+
+	def searchButton(self):
+			print("search button")
 
 	def handle_response(self, reply):
 		"""
