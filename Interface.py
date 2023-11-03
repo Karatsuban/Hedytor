@@ -76,10 +76,6 @@ class MainWindow(QMainWindow):
 		self.networkFileCheckBox = QCheckBox("Network file")
 
 		
-
-		self.hexEditorTextEdit = QTextEdit()
-		self.textEditorTextEdit = QTextEdit()
-
 		# Add widgets to layout
 
 		firstRowLayout = QHBoxLayout()
@@ -93,24 +89,26 @@ class MainWindow(QMainWindow):
 		firstRowLayout.addWidget(self.openFileButton)
 		firstRowLayout.addWidget(self.networkFileCheckBox)
 
-		self.tab = QTabWidget(self) # tab widget
+		# create tab widget and set its attributes
+		self.tab = QTabWidget(self)
 		self.tab.setMovable(True)
 		self.tab.setTabsClosable(True)
-
 		layout.addWidget(self.tab)
 		# set action when closing the tab index
 		self.tab.tabCloseRequested.connect(lambda index: self.removeTab(index))
 		
 
-		#self.newTab("blank")
-
 		# Attaching action to button
-		self.openFileButton.clicked.connect(self.openFile)
+		self.openFileButton.clicked.connect(self.openFileFromButton)
 
 
 	def switchToTab(self, index):
 		self.tab.setCurrentIndex(index)
 
+
+	def openFileFromButton(self):
+		filepath = self.filePathLineEdit.text()
+		self.openFile(filepath)
 
 	def openFile(self, filepath):
 		# open a file it it exists
@@ -135,25 +133,34 @@ class MainWindow(QMainWindow):
 
 
 	def	openFrom(self):
+		dialog = QFileDialog(self)
+		dialog.setFileMode(QFileDialog.AnyFile)
+		dialog.setViewMode(QFileDialog.Detail)
+		if dialog.exec():
+			filenames = dialog.selectedFiles()
+		else:
+			filenames = []
+		print("open from: "+", ".join(filenames))
+		for filename in filenames:
+			self.openFile(filename)
+
+
+	def saveTo(self):
+		current_widget = self.tab.currentWidget() # get current widget
+		if current_widget is not None:
+			filepath = current_widget.file.filepath
+			print("save to file :", filepath)
 			dialog = QFileDialog(self)
 			dialog.setFileMode(QFileDialog.AnyFile)
 			dialog.setViewMode(QFileDialog.Detail)
-			if dialog.exec():
-				filenames = dialog.selectedFiles()
-			else:
-				filenames = []
-			print("open from: "+", ".join(filenames))
-			for filename in filenames:
-				self.openFile(filename)
 
-	def saveTo(self):
-			print("save to")
+			
 
 	def exportToJSON(self):
-			print("export to JSON")
+		print("export to JSON")
 
 	def searchButton(self):
-			print("search button")
+		print("search button")
 
 	def handle_response(self, reply):
 		"""
@@ -180,11 +187,3 @@ class MainWindow(QMainWindow):
 		else:
 			self.info_text.append("Error: "+reply.errorString())
 		"""
-
-
-
-
-
-
-
-
