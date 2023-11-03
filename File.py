@@ -1,3 +1,5 @@
+import mimetypes
+import PIL.Image
 
 class File:
 
@@ -6,6 +8,9 @@ class File:
 		self.filepath = filepath
 		self.file = None
 		self.content = [] # file content
+		self.isPicture = False
+		self.hasExif = False
+		self.exifData = None
 
 
 	def open(self):
@@ -15,10 +20,37 @@ class File:
 		except OSError:
 			return -1
 		else:
+			self.guessType()
 			line = self.file.readline().hex()
 			while line != "":
 				self.content += [line[k:k+2] for k in range(0, len(line), 2)]
 				line = self.file.readline().hex()
+
+
+	def guessType(self):
+		my_type = mimetypes.guess_type(self.filepath)
+		if (my_type[0] is not None):
+			if (my_type[0].split('/')[0] == 'image'):
+				self.isPicture = True
+				self.storeExifData()
+	
+
+	def storeExifData(self):
+		img = PIL.Image.open(self.filepath)
+		raw_exif = img.getexif()
+		items = raw_exif.items()
+		if len(items) == 0:
+			self.hasExif = True
+			self.exifData = None
+		else:
+			self.hasExif = False
+			self.exifData = dict()
+			for key, val in items:
+				if key in ExifTags.TAGS:
+					self.exifData[ExifTags.TAGS[key]] = val
+				else:
+					self.exifData[key] = val
+		img.close()
 
 
 	def close(self):
@@ -31,3 +63,6 @@ class File:
 
 	def getContent(self):
 		return self.content
+
+	def getExifData(self):
+		return self.exifData
