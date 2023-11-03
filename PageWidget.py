@@ -2,12 +2,11 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 
-import EditorLayout
 import StringModel
 import File
 from PlainDelegate import *
 
-class PageWidget2(QWidget):
+class PageWidget(QWidget):
 
 	def __init__(self, filename):
 		super().__init__()
