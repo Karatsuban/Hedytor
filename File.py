@@ -12,6 +12,9 @@ class File:
 		self.hasExif = False
 		self.exifData = None
 
+		# Guess the file's type and act accordingly
+		self.guessType()
+
 
 	def open(self):
 		# open the file and populates the buffers
@@ -20,7 +23,6 @@ class File:
 		except OSError:
 			return -1
 		else:
-			self.guessType()
 			line = self.file.readline().hex()
 			while line != "":
 				self.content += [line[k:k+2] for k in range(0, len(line), 2)]
@@ -40,16 +42,14 @@ class File:
 		raw_exif = img.getexif()
 		items = raw_exif.items()
 		if len(items) == 0:
-			self.hasExif = True
+			self.hasExif = False
 			self.exifData = None
 		else:
-			self.hasExif = False
+			self.hasExif = True
 			self.exifData = dict()
 			for key, val in items:
-				if key in ExifTags.TAGS:
-					self.exifData[ExifTags.TAGS[key]] = val
-				else:
-					self.exifData[key] = val
+				self.exifData[key] = str(val)
+			print(self.exifData)
 		img.close()
 
 
@@ -65,4 +65,5 @@ class File:
 		return self.content
 
 	def getExifData(self):
+		print("getExifData called !")
 		return self.exifData
