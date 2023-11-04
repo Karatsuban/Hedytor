@@ -14,13 +14,14 @@ class PageWidget(QWidget):
 		self.filename = filename
 		self.file = File.File(self.filename)
 		self.file.open() # read the file content
+		self.isShowingExport = False # whether the exportWindow is open
 
 		# initiate only one model
 		self.model = StringModel.StringModel(self.file.getContent())
 
 		# define font and layout
 		self.font = QFont("Monospace")
-		self.layout = QHBoxLayout()
+		self.layout = QGridLayout()
 		self.setLayout(self.layout)
 
 
@@ -54,23 +55,26 @@ class PageWidget(QWidget):
 		# synchronize the selection across the two views
 		self.plainEditor.setSelectionModel(self.hexEditor.selectionModel())
 
-		print(self.hexEditor.verticalScrollBar())
 		self.plainEditor.setVerticalScrollBar(self.hexEditor.verticalScrollBar())
-		self.scrollBar = self.plainEditor.verticalScrollBar()
+		self.plainEditor.setHorizontalScrollBar(self.hexEditor.horizontalScrollBar())
+		self.vScrollBar = self.plainEditor.verticalScrollBar()
+		self.hScrollBar = self.plainEditor.horizontalScrollBar()
 
 		# adding the widgets to the layout
-		self.layout.addWidget(self.hexEditor)
-		self.layout.addWidget(self.scrollBar)
-		self.layout.addWidget(self.plainEditor)
+		self.layout.addWidget(self.hexEditor, 0, 0)
+		self.layout.addWidget(self.vScrollBar, 0, 1)
+		self.layout.addWidget(self.plainEditor, 0, 2)
+		self.layout.addWidget(self.hScrollBar, 1, 0, 1, 3)
 
 
-
+		
 
 		# spawn a new window if the file opened is an image
 		if self.file.isPicture:
 			if self.file.hasExif:
 				self.exportWindow = ExportWindow(self.file.getExifData())
 				self.exportWindow.show()
+				self.isShowingExport = True
 		
 	
 
@@ -81,22 +85,14 @@ class PageWidget(QWidget):
 		self.plainEditor.resize()
 
 
-	def setText(self, text):
-		self.model.setStringlist(text)
-
-	def setHexText(self, text):
-		#self.hexEditor.setText(text)
-		pass
-	
-
-	def setPlainText(self, text):
-		#self.plainEditor.setText(text)
-		pass
-
 	def close(self):
 		self.file.close() # close the file
 		self.hexEditor.close()
 		self.plainEditor.close()
+
+		# close the export window if it exists
+		if self.isShowingExport:
+			self.exportWindow.close()
 	
 	"""	
 	def resizeEvent(self, event):
