@@ -68,15 +68,16 @@ class PageWidget(QWidget):
 
 
 		
-
+		self.exportExif()
+		
+	
+	def exportExif(self):
 		# spawn a new window if the file opened is an image
 		if self.file.isPicture:
 			if self.file.hasExif:
 				self.exportWindow = ExportWindow(self.file.getExifData())
 				self.exportWindow.show()
 				self.isShowingExport = True
-		
-	
 
 
 	def resizeEditors(self):
