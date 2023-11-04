@@ -1,3 +1,4 @@
+import random
 import sys
 import os
 import time
@@ -111,18 +112,21 @@ class MainWindow(QMainWindow):
 		# verify HERE that all works are saved before closing
 		event.accept() # accept the close event
 
+
 	def switchToTab(self, index):
 		self.tab.setCurrentIndex(index)
 
 
 	def openFileFromButton(self):
 		filepath = self.filePathLineEdit.text()
+		if len(filepath) == 0:
+			return
+
 		if (self.networkFileCheckBox.isChecked()):
-			print("opening URL : ", filepath)
-			self.networkFileCheckBox.setCheckState(Qt.Unchecked)
 			self.send_request(filepath)
 		else:
 			self.openFile(filepath)
+
 
 	def openFile(self, filepath):
 		# open a file it it exists
@@ -133,6 +137,7 @@ class MainWindow(QMainWindow):
 			self.filePathLineEdit.clear()
 		else:
 			self.status.showMessage("File not found: '"+str(filepath)+"'", 3000)
+			self.filePathLineEdit.setFocus() # set the focus back to the line edit
 
 
 	def addTab(self, page, title):
@@ -150,6 +155,7 @@ class MainWindow(QMainWindow):
 
 
 	def	openFrom(self):
+		# open a file from a file dialog
 		dialog = QFileDialog(self)
 		dialog.setFileMode(QFileDialog.AnyFile)
 		dialog.setViewMode(QFileDialog.Detail)
@@ -163,18 +169,24 @@ class MainWindow(QMainWindow):
 
 
 	def saveTo(self):
+		# save the the current file, with a file manager
 		current_widget = self.tab.currentWidget() # get current widget
 		if current_widget is not None:
 			filepath = current_widget.file.filepath
 			print("save to file :", filepath)
 			dialog = QFileDialog(self)
+			dialog.AcceptMode(QFileDialog.AcceptSave)
 			dialog.setFileMode(QFileDialog.AnyFile)
 			dialog.setViewMode(QFileDialog.Detail)
 
 			
 
 	def exportToJSON(self):
-		print("export to JSON")
+		# export the current file's data to JSON if possible
+		current_widget = self.tab.currentWidget()
+		if current_widget is not None:
+			current_widget.exportExif()
+
 
 	def searchButton(self):
 		print("search button")
@@ -197,8 +209,23 @@ class MainWindow(QMainWindow):
 			status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
 			#self.info_text.append(f"HTTP error code: {status_code}")
 
-			content = reply.readAll().data().decode("utf-8")
-			#self.response_text.setPlainText(content)
+			outputFileName = "tmp/file_"+str(random.random()).split(".")[1]
+			self.createTempDir()
+
+			# trasnferring the content into a file
+			with open(outputFileName, "w") as file:
+				lines = reply.readAll().data().decode("utf-8")
+				file.write(lines)
+			
+			self.networkFileCheckBox.setCheckState(Qt.Unchecked)
+			self.openFile(outputFileName) # finally open the downloaded file
+			self.status.showMessage("File successfully downloaded at '"+outputFileName+"'", 3000)
 		else:
 			self.status.showMessage("Error: "+reply.errorString(), 3000)
-	
+			self.filePathLineEdit.setFocus() # set the focus back to the line edit
+
+
+	def createTempDir(self):
+		if (not os.path.exists("tmp/")):
+			os.makedirs("tmp/")
+
