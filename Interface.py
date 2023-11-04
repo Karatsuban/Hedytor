@@ -16,26 +16,27 @@ class MainWindow(QMainWindow):
 
 		self.font = QFont("Monospace")
 
-		# File list
-		self.fileList = []
-
-
 		# central widget
 		central_widget = QWidget(self)
 		self.setCentralWidget(central_widget)
 
+		# create layout
 		layout = QVBoxLayout()
 		central_widget.setLayout(layout)
 
+		# set status bar
 		self.setStatusBar(QStatusBar(self))
 		self.status = self.statusBar()
 		self.status.addPermanentWidget(QLabel("Hedytor v1.0"))
 
-		#self.network_manager = QNetworkAccessManager()
-		#self.network_manager.finished.connect(self.handle_response)
+		# creat network manager
+		self.network_manager = QNetworkAccessManager()
+		self.network_manager.finished.connect(self.handle_response)
+
 
 		# Add a menubar
 		self.menu = self.menuBar()
+
 
 		# Action buttons
 	
@@ -72,7 +73,11 @@ class MainWindow(QMainWindow):
 
 		self.filePathLineEdit = QLineEdit()
 		self.filePathLineEdit.setPlaceholderText("Enter a file path")
+
+		# creating "open file" button and its logic
 		self.openFileButton = QPushButton("Open file")
+		self.openFileButton.clicked.connect(self.openFileFromButton)
+		
 		self.networkFileCheckBox = QCheckBox("Network file")
 
 		
@@ -98,9 +103,13 @@ class MainWindow(QMainWindow):
 		self.tab.tabCloseRequested.connect(lambda index: self.removeTab(index))
 		
 
-		# Attaching action to button
-		self.openFileButton.clicked.connect(self.openFileFromButton)
 
+
+	def closeEvent(self, event):
+		while (self.tab.count() != 0):
+			self.removeTab(0)
+		# verify HERE that all works are saved before closing
+		event.accept() # accept the close event
 
 	def switchToTab(self, index):
 		self.tab.setCurrentIndex(index)
@@ -108,7 +117,12 @@ class MainWindow(QMainWindow):
 
 	def openFileFromButton(self):
 		filepath = self.filePathLineEdit.text()
-		self.openFile(filepath)
+		if (self.networkFileCheckBox.isChecked()):
+			print("opening URL : ", filepath)
+			self.networkFileCheckBox.setCheckState(Qt.Unchecked)
+			self.send_request(filepath)
+		else:
+			self.openFile(filepath)
 
 	def openFile(self, filepath):
 		# open a file it it exists
@@ -117,6 +131,8 @@ class MainWindow(QMainWindow):
 			filename = os.path.split(filepath)[-1]
 			self.addTab(page, filename)
 			self.filePathLineEdit.clear()
+		else:
+			self.status.showMessage("File not found: '"+str(filepath)+"'", 3000)
 
 
 	def addTab(self, page, title):
@@ -130,6 +146,7 @@ class MainWindow(QMainWindow):
 		# remove the page at index
 		page = self.tab.widget(index)
 		self.tab.removeTab(index)
+		page.close()
 
 
 	def	openFrom(self):
@@ -162,28 +179,26 @@ class MainWindow(QMainWindow):
 	def searchButton(self):
 		print("search button")
 
+
+	def send_request(self, url):
+		if url:
+			# TODO vérifier que l'url est correcte
+			self.openFileButton.setEnabled(False) # disable the button
+			self.start_time = time.time()
+			request = QNetworkRequest(QUrl(url))
+			self.network_manager.get(request)
+
+
 	def handle_response(self, reply):
-		"""
 		elapsed_time = time.time() - self.start_time
-		self.send_button.setEnabled(True) # enable the button
-		self.info_text.append(f"Response Time : {elapsed_time:.2f} seconds")
+		self.openFileButton.setEnabled(True) # enable the button
+		self.status.showMessage(f"Response time : {elapsed_time:.2f} seconds", 3000)
 		if reply.error() == QNetworkReply.NoError:
 			status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-			self.info_text.append(f"HTTP error code: {status_code}")
+			#self.info_text.append(f"HTTP error code: {status_code}")
 
 			content = reply.readAll().data().decode("utf-8")
-			self.response_text.setPlainText(content)
-
-			headers = reply.rawHeaderList()
-			for header in headers:
-				header_cell = QTableWidgetItem(header.data().decode("utf-8"))
-				value_cell = QTableWidgetItem(reply.rawHeader(header).data().decode("utf-8"))
-
-				self.header_table.insertRow(self.header_table.rowCount())
-				self.header_table.setItem(self.header_table.rowCount()-1, 0, header_cell)
-				self.header_table.setItem(self.header_table.rowCount()-1, 1, value_cell)
-
-
+			#self.response_text.setPlainText(content)
 		else:
-			self.info_text.append("Error: "+reply.errorString())
-		"""
+			self.status.showMessage("Error: "+reply.errorString(), 3000)
+	
