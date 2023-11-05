@@ -47,30 +47,21 @@ class MainWindow(QMainWindow):
 		saveButton.triggered.connect(self.saveTo)
 		exportJSONButton = QAction("&Export to JSON", self)
 		exportJSONButton.triggered.connect(self.exportToJSON)
+		newFileButton = QAction("&New file", self)
+		newFileButton.triggered.connect(self.openBlank)
 
-		searchButton = QAction("&Search", self)
-		searchButton.triggered.connect(self.searchButton)
-
-		displayButton = QAction("Nb columns", self)
 
 		# add menues
 		self.file_menu = self.menu.addMenu("&File")
-		self.edit_menu = self.menu.addMenu("&Edit")
-		self.disp_menu = self.menu.addMenu("&Display")
 
 		# Add actions to menues
 		self.file_menu.addAction(openButton)
+		self.file_menu.addAction(newFileButton)
 		self.file_menu.addAction(saveButton)
 		self.file_menu.addAction(exportJSONButton)
 
-		self.edit_menu.addAction(searchButton)
-		
-		self.disp_menu.addAction(displayButton)
 
 		# Add widgets
-
-
-
 
 		self.filePathLineEdit = QLineEdit()
 		self.filePathLineEdit.setPlaceholderText("Enter a file path")
@@ -90,7 +81,6 @@ class MainWindow(QMainWindow):
 		secondRowLayout = QHBoxLayout()
 		layout.addLayout(secondRowLayout)
 		
-
 		firstRowLayout.addWidget(self.filePathLineEdit)
 		firstRowLayout.addWidget(self.openFileButton)
 		firstRowLayout.addWidget(self.networkFileCheckBox)
@@ -100,42 +90,63 @@ class MainWindow(QMainWindow):
 		self.tab.setMovable(True)
 		self.tab.setTabsClosable(True)
 		layout.addWidget(self.tab)
+
 		# set action when closing the tab index
 		self.tab.tabCloseRequested.connect(lambda index: self.removeTab(index))
+
+		self.blankNb = 0 # number of blank files opened
 		
 
 
 
 	def closeEvent(self, event):
+		# handle the close event by closing each thing correcly 
 		while (self.tab.count() != 0):
 			self.removeTab(0)
-		# verify HERE that all works are saved before closing
 		event.accept() # accept the close event
 
 
 	def switchToTab(self, index):
+		# switch to the given tab
 		self.tab.setCurrentIndex(index)
+
+	def openBlank(self):
+		# open a blank file
+		self.openFile(None)
 
 
 	def openFileFromButton(self):
+		# opening a file from a button press
+
 		filepath = self.filePathLineEdit.text()
 		if len(filepath) == 0:
 			return
 
+		# open either a local or remote file
 		if (self.networkFileCheckBox.isChecked()):
 			self.send_request(filepath)
 		else:
 			self.openFile(filepath)
 
 
-	def openFile(self, filepath):
-		# open a file it it exists
+	def openFile(self, filepath=None):
+		# open a file if it exists
+		
+		if filepath is None:
+			# open a blank file
+			page = PageWidget.PageWidget(None)
+			self.addTab(page, "File_{}".format(self.blankNb))
+			self.blankNb += 1
+			return
+
 		if (os.path.isfile(filepath)):
+			# opening the file and creating a new page
 			page = PageWidget.PageWidget(filepath)
 			filename = os.path.split(filepath)[-1]
 			self.addTab(page, filename)
 			self.filePathLineEdit.clear()
 		else:
+			# could not open
 			self.status.showMessage("File not found: '"+str(filepath)+"'", 3000)
 			self.filePathLineEdit.setFocus() # set the focus back to the line edit
 
@@ -163,7 +174,6 @@ class MainWindow(QMainWindow):
 			filenames = dialog.selectedFiles()
 		else:
 			filenames = []
-		print("open from: "+", ".join(filenames))
 		for filename in filenames:
 			self.openFile(filename)
 
@@ -173,11 +183,14 @@ class MainWindow(QMainWindow):
 		current_widget = self.tab.currentWidget() # get current widget
 		if current_widget is not None:
 			filepath = current_widget.file.filepath
-			print("save to file :", filepath)
 			dialog = QFileDialog(self)
 			dialog.AcceptMode(QFileDialog.AcceptSave)
 			dialog.setFileMode(QFileDialog.AnyFile)
 			dialog.setViewMode(QFileDialog.Detail)
+
+			if dialog.exec():
+				filename = dialog.selectedFiles()
+				current_widget.saveTo(filename[0])
 
 			
 
@@ -185,16 +198,15 @@ class MainWindow(QMainWindow):
 		# export the current file's data to JSON if possible
 		current_widget = self.tab.currentWidget()
 		if current_widget is not None:
-			current_widget.exportExif()
+			ret = current_widget.exportExif()
+			if ret is not None:
+				self.status.showMessage(ret, 3000)
 
-
-	def searchButton(self):
-		print("search button")
 
 
 	def send_request(self, url):
+		# request a url
 		if url:
-			# TODO vérifier que l'url est correcte
 			self.openFileButton.setEnabled(False) # disable the button
 			self.start_time = time.time()
 			request = QNetworkRequest(QUrl(url))
@@ -202,13 +214,14 @@ class MainWindow(QMainWindow):
 
 
 	def handle_response(self, reply):
+		# handle the response by saving the file
 		elapsed_time = time.time() - self.start_time
 		self.openFileButton.setEnabled(True) # enable the button
 		self.status.showMessage(f"Response time : {elapsed_time:.2f} seconds", 3000)
 		if reply.error() == QNetworkReply.NoError:
 			status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-			#self.info_text.append(f"HTTP error code: {status_code}")
-
+			
+			# creating a temp file with a random name to avoid overwriting another
 			outputFileName = "tmp/file_"+str(random.random()).split(".")[1]
 			self.createTempDir()
 
@@ -221,11 +234,13 @@ class MainWindow(QMainWindow):
 			self.openFile(outputFileName) # finally open the downloaded file
 			self.status.showMessage("File successfully downloaded at '"+outputFileName+"'", 3000)
 		else:
+			# could not get the file
 			self.status.showMessage("Error: "+reply.errorString(), 3000)
 			self.filePathLineEdit.setFocus() # set the focus back to the line edit
 
 
 	def createTempDir(self):
+		# create the /tmp dir if does not exist
 		if (not os.path.exists("tmp/")):
 			os.makedirs("tmp/")
 
