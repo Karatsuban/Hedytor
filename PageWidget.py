@@ -5,7 +5,9 @@ from PySide6.QtGui import *
 import StringModel
 import File
 from PlainDelegate import *
+from HexDelegate import *
 from ExportWindow import *
+from EditorView import *
 
 class PageWidget(QWidget):
 
@@ -26,11 +28,13 @@ class PageWidget(QWidget):
 
 
 		# create two different views
-		self.hexEditor = QTableView()
-		self.plainEditor = QTableView()
+		self.hexEditor = EditorView()
+		self.plainEditor = EditorView()
 
 
 		# set the hex editor's values
+		self.hdelegate = HexDelegate(self.hexEditor)
+		self.hexEditor.setItemDelegate(self.hdelegate)
 		self.hexEditor.setFont(self.font)
 		self.hexEditor.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
 		self.hexEditor.setModel(self.model)
@@ -40,8 +44,8 @@ class PageWidget(QWidget):
 
 
 		# set the plain editor's values
-		self.delegate = PlainDelegate(self.plainEditor)
-		self.plainEditor.setItemDelegate(self.delegate)
+		self.pdelegate = PlainDelegate(self.plainEditor)
+		self.plainEditor.setItemDelegate(self.pdelegate)
 		self.plainEditor.setFont(self.font)
 		self.plainEditor.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
 		self.plainEditor.setModel(self.model)
@@ -49,7 +53,6 @@ class PageWidget(QWidget):
 		self.plainEditor.resizeColumnsToContents()
 		self.plainEditor.resizeRowsToContents()
 		self.plainEditor.setShowGrid(False) # hide the grid
-		#self.plainEditor.horizontalHeader().hide() # hide the horizontal header
 
 
 		# synchronize the selection across the two views
@@ -78,6 +81,10 @@ class PageWidget(QWidget):
 				self.exportWindow = ExportWindow(self.file.getExifData())
 				self.exportWindow.show()
 				self.isShowingExport = True
+			else:
+				return "Can'r export to JSON: file has no exif data!"
+		else:
+			return "Can't export to JSON: file is not an image!"
 
 
 	def resizeEditors(self):
@@ -95,7 +102,9 @@ class PageWidget(QWidget):
 		if self.isShowingExport:
 			self.exportWindow.close()
 	
-	"""	
-	def resizeEvent(self, event):
-		self.resizeEditors()
-	"""
+
+	def saveTo(self, filename):
+		# save the content of the model to file
+		self.file.saveTo(filename, self.model.getData())
+	
+
