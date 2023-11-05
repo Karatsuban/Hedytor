@@ -8,7 +8,6 @@ class ExportWindow(QWidget):
 		self.layout = QVBoxLayout()
 		self.data = data # data is a dictionary
 
-		print(self.data, type(self.data))
 		self.dataPrintable = ""
 		for key, val in self.data.items():
 			self.dataPrintable += str(key)+": "+str(val)+"\n"
@@ -37,7 +36,6 @@ class ExportWindow(QWidget):
 		else:
 			filenames = []
 		if (len(filenames) != 0):
-			print("open from: "+", ".join(filenames))
 			self.exportToJSON(filenames[0])
 
 	def close(self):
@@ -45,10 +43,8 @@ class ExportWindow(QWidget):
 		super().close()
 
 	def exportToJSON(self, filepath):
-		print("In export to JSON, filename =", filepath)
 
 		jsoned_data = json.dumps(self.data)
-		print(jsoned_data)
 		
 		with open(filepath, "w") as file:
 			try:

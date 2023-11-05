@@ -4,7 +4,7 @@ import PIL.Image
 class File:
 
 
-	def __init__(self, filepath ):
+	def __init__(self, filepath=None ):
 		self.filepath = filepath
 		self.file = None
 		self.content = [] # file content
@@ -18,18 +18,27 @@ class File:
 
 	def open(self):
 		# open the file and populates the buffers
+		if self.filepath is None:
+			# BLANK FILE OPENED
+			greeting = "This is a blank document".encode().hex()
+			self.content = [greeting[k:k+2] for k in range(0, len(greeting), 2)]
+			return
+
 		try :
 			self.file = open(self.filepath, "rb+")
 		except OSError:
 			return -1
 		else:
-			line = self.file.readline().hex()
+			line = None 
 			while line != "":
-				self.content += [line[k:k+2] for k in range(0, len(line), 2)]
 				line = self.file.readline().hex()
+				self.content += [line[k:k+2] for k in range(0, len(line), 2)]
 
 
 	def guessType(self):
+		if self.filepath is None:
+			return
+
 		my_type = mimetypes.guess_type(self.filepath)
 		if (my_type[0] is not None):
 			if (my_type[0].split('/')[0] == 'image'):
@@ -49,15 +58,20 @@ class File:
 			self.exifData = dict()
 			for key, val in items:
 				self.exifData[key] = str(val)
-			print(self.exifData)
 		img.close()
 
 
 	def close(self):
 		# close the file after use
-		self.file.close()
+		if self.filepath is not None:
+			self.file.close()
 
 
+	def saveTo(self, filename, content):
+		# save the content to file
+		with open(filename, "wb") as file:
+			for a in range(0, len(content), 4096):
+				file.write(bytes.fromhex("".join(content[a:a+4096])))
 
 	# Getters
 
@@ -65,5 +79,4 @@ class File:
 		return self.content
 
 	def getExifData(self):
-		print("getExifData called !")
 		return self.exifData
