@@ -4,7 +4,10 @@ Hexadecimal editor in Python, both for local and online files
 
 ## How to use
 
-Simply type `$ python Hedytor.py` to launch the program.
+You may need to install PySide6 for this project to work.  
+Simple execute `pip install -r requirements.txt`.  
+
+When you are ready, simply type `$ python Hedytor.py` to launch the program.
 
 When you're in, you'll be met with a simple interface.  
 There's an input line, a button and a checkBox... and that's all you need!  
